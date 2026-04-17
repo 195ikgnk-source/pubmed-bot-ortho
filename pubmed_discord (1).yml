@@ -1,0 +1,37 @@
+name: PubMed → Discord 翻訳配信
+
+on:
+  schedule:
+    # JST = UTC+9
+    # 08:00 JST = 23:00 UTC (前日)
+    - cron: "0 23 * * *"
+    # 15:00 JST = 06:00 UTC
+    - cron: "0 6 * * *"
+
+  # 手動実行（テスト用）
+  workflow_dispatch:
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 標準ライブラリのみ使用のため pip install 不要
+
+      - name: Run delivery script
+        env:
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          DISCORD_WEBHOOK_URL:  ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PUBMED_KEYWORDS:      ${{ vars.PUBMED_KEYWORDS }}
+          MAX_RESULTS:          ${{ vars.MAX_RESULTS }}
+          PUBMED_API_KEY:       ${{ secrets.PUBMED_API_KEY }}
+        run: python fetch_and_post.py
